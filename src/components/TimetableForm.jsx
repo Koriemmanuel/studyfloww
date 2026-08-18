@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { deleteAllClassSessions, deleteAllStudySessions } from "../utils/dataService";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-export default function TimetableForm({ classSessions, onAdd, onRemove }) {
+export default function TimetableForm({ classSessions, onAdd, onRemove, onClearAll }) {
   const [course, setCourse] = useState("");
   const [day, setDay] = useState("Monday");
   const [start, setStart] = useState("08:00");
@@ -23,9 +24,24 @@ export default function TimetableForm({ classSessions, onAdd, onRemove }) {
     setCourse("");
   }
 
+  async function handleClearAll() {
+    if (classSessions.length === 0) return;
+    const confirmed = window.confirm("Delete ALL courses and the current study schedule? This can't be undone.");
+    if (!confirmed) return;
+
+    await deleteAllClassSessions();
+    await deleteAllStudySessions();
+    onClearAll();
+  }
+
   return (
     <div className="card">
-      <h2>Your Class Timetable</h2>
+      <div className="section-header-row">
+        <h2>Your Class Timetable</h2>
+        {classSessions.length > 0 && (
+          <button className="danger-zone-btn" onClick={handleClearAll}>Delete All</button>
+        )}
+      </div>
 
       <div className="form-row">
         <div className="field">

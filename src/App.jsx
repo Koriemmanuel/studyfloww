@@ -26,10 +26,8 @@ export default function App() {
   const [studySchedule, setStudySchedule] = useState([]);
   const [activeSession, setActiveSession] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("schedule"); // "schedule" | "history"
+  const [tab, setTab] = useState("schedule");
 
-  // courses is always derived fresh from classSessions —
-  // never stored separately, so a deleted class can never linger here.
   const courses = [...new Set(classSessions.map((c) => c.course))];
 
   useEffect(() => {
@@ -56,6 +54,15 @@ export default function App() {
     const session = classSessions[index];
     await deleteClassSessionById(session.dbId);
     setClassSessions((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function handleClearAllTimetable() {
+    setClassSessions([]);
+    setStudySchedule([]);
+  }
+
+  function handleClearSchedule() {
+    setStudySchedule([]);
   }
 
   async function handleGenerate() {
@@ -112,7 +119,12 @@ export default function App() {
 
       {tab === "schedule" ? (
         <>
-          <TimetableForm classSessions={classSessions} onAdd={addClass} onRemove={removeClass} />
+          <TimetableForm
+            classSessions={classSessions}
+            onAdd={addClass}
+            onRemove={removeClass}
+            onClearAll={handleClearAllTimetable}
+          />
 
           <div className="card">
             <button className="btn-primary" onClick={handleGenerate} disabled={classSessions.length === 0}>
@@ -127,6 +139,7 @@ export default function App() {
             onManualSet={handleManualSet}
             onRemoveSession={handleRemoveSession}
             onOpenNotes={(session) => setActiveSession(session)}
+            onClearSchedule={handleClearSchedule}
           />
         </>
       ) : (

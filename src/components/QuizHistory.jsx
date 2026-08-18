@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { loadQuizHistory } from "../utils/dataService";
+import { loadQuizHistory, deleteQuizResultById, deleteAllQuizHistory } from "../utils/dataService";
 
 function scoreClass(score, total) {
   const pct = score / total;
@@ -25,11 +25,20 @@ export default function QuizHistory() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    loadQuizHistory()
-      .then(setHistory)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+    loadQuizHistory().then(setHistory).catch((e) => setError(e.message)).finally(() => setLoading(false));
   }, []);
+
+  async function handleDelete(id) {
+    await deleteQuizResultById(id);
+    setHistory((prev) => prev.filter((h) => h.id !== id));
+  }
+
+  async function handleClearAll() {
+    const confirmed = window.confirm("Delete ALL quiz history? This can't be undone.");
+    if (!confirmed) return;
+    await deleteAllQuizHistory();
+    setHistory([]);
+  }
 
   if (loading) return <p className="empty-state">Loading history…</p>;
   if (error) return <p className="empty-state">Failed to load history: {error}</p>;
@@ -39,13 +48,16 @@ export default function QuizHistory() {
   }
 
   const totalQuizzes = history.length;
-  const avgPct = Math.round(
-    (history.reduce((sum, h) => sum + h.score / h.total, 0) / totalQuizzes) * 100
-  );
+  const avgPct = Math.round((history.reduce((sum, h) => sum + h.score / h.total, 0) / totalQuizzes) * 100);
   const bestScore = Math.max(...history.map((h) => Math.round((h.score / h.total) * 100)));
 
   return (
     <div>
+      <div className="section-header-row">
+        <span></span>
+        <button className="danger-zone-btn" onClick={handleClearAll}>Delete All</button>
+      </div>
+
       <div className="stats-row">
         <div className="stat-box">
           <div className="stat-value">{totalQuizzes}</div>
@@ -67,8 +79,9 @@ export default function QuizHistory() {
             <p className="h-topic">{h.topic}</p>
             <p className="h-meta">{h.course} · {timeAgo(h.created_at)}</p>
           </div>
-          <div className={`history-score ${scoreClass(h.score, h.total)}`}>
-            {h.score}/{h.total}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div className={`history-score ${scoreClass(h.score, h.total)}`}>{h.score}/{h.total}</div>
+            <button className="small-delete-btn" onClick={() => handleDelete(h.id)}>✕</button>
           </div>
         </div>
       ))}

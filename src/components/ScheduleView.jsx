@@ -1,8 +1,17 @@
 import { getAvailableStartsForDay, timeFromMinutes } from "../utils/scheduler";
+import { deleteAllStudySessions } from "../utils/dataService";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-export default function ScheduleView({ schedule, classSessions, onResetTime, onManualSet, onRemoveSession, onOpenNotes }) {
+export default function ScheduleView({ schedule, classSessions, onResetTime, onManualSet, onRemoveSession, onOpenNotes, onClearSchedule }) {
+  async function handleClearSchedule() {
+    if (schedule.length === 0) return;
+    const confirmed = window.confirm("Delete the entire study schedule? Your class timetable will stay intact.");
+    if (!confirmed) return;
+    await deleteAllStudySessions();
+    onClearSchedule();
+  }
+
   if (!schedule || schedule.length === 0) {
     return (
       <div className="card">
@@ -14,7 +23,11 @@ export default function ScheduleView({ schedule, classSessions, onResetTime, onM
 
   return (
     <div className="card">
-      <h2>Your Study Schedule</h2>
+      <div className="section-header-row">
+        <h2>Your Study Schedule</h2>
+        <button className="danger-zone-btn" onClick={handleClearSchedule}>Delete All</button>
+      </div>
+
       {DAYS.map((day) => {
         const sessions = schedule.filter((s) => s.day === day);
         if (sessions.length === 0) return null;

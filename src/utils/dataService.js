@@ -22,6 +22,11 @@ export async function deleteClassSessionById(dbId) {
   if (error) throw error;
 }
 
+export async function deleteAllClassSessions() {
+  const { error } = await supabase.from("class_sessions").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  if (error) throw error;
+}
+
 // ---- Study Sessions ----
 export async function loadStudySessions() {
   const { data, error } = await supabase.from("study_sessions").select("*").order("created_at");
@@ -30,7 +35,6 @@ export async function loadStudySessions() {
 }
 
 export async function replaceStudySchedule(schedule) {
-  // Clear old auto-generated schedule, then insert the fresh one
   const { error: delErr } = await supabase.from("study_sessions").delete().neq("id", "");
   if (delErr) throw delErr;
 
@@ -61,9 +65,30 @@ export async function deleteStudySessionById(id) {
   if (error) throw error;
 }
 
+export async function deleteAllStudySessions() {
+  const { error } = await supabase.from("study_sessions").delete().neq("id", "");
+  if (error) throw error;
+}
+
 // ---- Notes ----
 export async function saveNoteToDb(course, topic, content) {
   const { error } = await supabase.from("notes").insert({ course, topic, content });
+  if (error) throw error;
+}
+
+export async function loadNotesHistory() {
+  const { data, error } = await supabase.from("notes").select("*").order("created_at", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteNoteById(id) {
+  const { error } = await supabase.from("notes").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteAllNotes() {
+  const { error } = await supabase.from("notes").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   if (error) throw error;
 }
 
@@ -72,19 +97,19 @@ export async function saveQuizResultToDb(course, topic, score, total) {
   const { error } = await supabase.from("quiz_history").insert({ course, topic, score, total });
   if (error) throw error;
 }
+
 export async function loadQuizHistory() {
-  const { data, error } = await supabase
-    .from("quiz_history")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const { data, error } = await supabase.from("quiz_history").select("*").order("created_at", { ascending: false });
   if (error) throw error;
   return data;
 }
-export async function loadNotesHistory() {
-  const { data, error } = await supabase
-    .from("notes")
-    .select("*")
-    .order("created_at", { ascending: false });
+
+export async function deleteQuizResultById(id) {
+  const { error } = await supabase.from("quiz_history").delete().eq("id", id);
   if (error) throw error;
-  return data;
+}
+
+export async function deleteAllQuizHistory() {
+  const { error } = await supabase.from("quiz_history").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  if (error) throw error;
 }
